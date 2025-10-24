@@ -1,0 +1,20 @@
+[Unit]
+Description=Ultroid Docker Bot
+After=network-online.target docker.service
+Wants=network-online.target
+Requires=docker.service
+
+[Service]
+Type=simple
+User=ravindu644
+WorkingDirectory=/home/ravindu644/ultroid-bot-v3
+ExecStartPre=/bin/bash -c 'until ping -c1 8.8.8.8 &>/dev/null || ping -c1 1.1.1.1 &>/dev/null; do echo "Waiting for network..."; sleep 5; done'
+ExecStart=/home/ravindu644/ultroid-bot-v3/docker-ultroid.sh start
+ExecStop=/home/ravindu644/ultroid-bot-v3/docker-ultroid.sh stop
+Restart=on-failure
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

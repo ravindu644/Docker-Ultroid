@@ -50,6 +50,7 @@ jobs:
         cp Dockerfile "ultroid-bot-${DOCKER_CONTAINER_VERSION}/"
         cp docker-ultroid.sh "ultroid-bot-${DOCKER_CONTAINER_VERSION}/"
         cp init_vars.sh "ultroid-bot-${DOCKER_CONTAINER_VERSION}/"
+        cp -ar systemd-service/ "ultroid-bot-${DOCKER_CONTAINER_VERSION}/"
 
         # Create final zip package
         zip -0 -r "ultroid-bot-${DOCKER_CONTAINER_VERSION}.zip" "ultroid-bot-${DOCKER_CONTAINER_VERSION}"
