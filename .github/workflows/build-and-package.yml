@@ -1,0 +1,102 @@
+name: Build and Package Docker Container
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Docker Release Tag'
+        required: true
+        type: string
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+
+    steps:
+    - name: Checkout source
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 1
+
+    - name: Set environment variable
+      run: |
+        echo "DOCKER_CONTAINER_VERSION=${{ github.event.inputs.tag }}" >> $GITHUB_ENV
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Build Docker container
+      run: |
+        docker build -t ultroid-bot .
+
+    - name: Export and compress Docker image
+      run: |
+        # Export Docker image as tar
+        docker save -o ultroid-bot.tar ultroid-bot
+
+        # Compress with xz using maximum compression and all available threads
+        xz -z -T0 -9 ultroid-bot.tar
+
+        # Create release directory
+        mkdir -p "ultroid-bot-${DOCKER_CONTAINER_VERSION}"
+
+        # Move compressed image
+        mv ultroid-bot.tar.xz "ultroid-bot-${DOCKER_CONTAINER_VERSION}/"
+
+        # Copy all necessary files
+        cp Dockerfile "ultroid-bot-${DOCKER_CONTAINER_VERSION}/"
+        cp docker-ultroid.sh "ultroid-bot-${DOCKER_CONTAINER_VERSION}/"
+        cp init_vars.sh "ultroid-bot-${DOCKER_CONTAINER_VERSION}/"
+
+        # Create final zip package
+        zip -0 -r "ultroid-bot-${DOCKER_CONTAINER_VERSION}.zip" "ultroid-bot-${DOCKER_CONTAINER_VERSION}"
+
+    - name: Upload Artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: Ultroid-Bot-${{ github.event.inputs.tag }}
+        path: "*.zip"
+
+    - name: Create Release
+      uses: ncipollo/release-action@v1
+      with:
+        tag: ${{ github.event.inputs.tag }}
+        name: "Ultroid-Bot-${{ github.event.inputs.tag }}"
+        draft: false
+        prerelease: true
+        token: ${{ secrets.GITHUB_TOKEN }}
+        artifacts: "*.zip"
+        body: |
+          **Ultroid Docker Bot Release**
+
+          **How to use:**
+
+          1. Download the `ultroid-bot-${{ github.event.inputs.tag }}.zip` file
+          2. Extract it: `unzip ultroid-bot-${{ github.event.inputs.tag }}.zip`
+          3. Navigate to the extracted directory: `cd ultroid-bot-${{ github.event.inputs.tag }}`
+          4. Make the script executable: `chmod +x docker-ultroid.sh`
+          5. Install Docker if not already installed:
+             - **Ubuntu/Debian:**
+               ```bash
+               sudo apt update && sudo apt install -y docker.io
+               sudo usermod -aG docker $USER
+               newgrp docker
+               ```
+             - **CentOS/RHEL/Fedora:**
+               ```bash
+               sudo dnf install -y docker
+               sudo systemctl enable --now docker
+               sudo usermod -aG docker $USER
+               newgrp docker
+               ```
+          6. Run the bot: `./docker-ultroid.sh start`
+
+          **Available commands:**
+          - `./docker-ultroid.sh build` - Build/rebuild the Docker image
+          - `./docker-ultroid.sh start` - Start the bot container
+          - `./docker-ultroid.sh stop` - Stop the running container
+          - `./docker-ultroid.sh logs` - View live logs
+          - `./docker-ultroid.sh shell` - Open interactive shell in container
+          - `./docker-ultroid.sh uninstall` - Remove container, image, and data
+
+          **Note:** On first run, you'll be prompted to enter your Telegram API credentials.
