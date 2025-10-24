@@ -78,6 +78,19 @@ case "$1" in
         docker volume rm "$REDIS_VOLUME" &>/dev/null
         rm -f ".installed"
 
+        # Check if compressed image exists and load it
+        if [ -f "$COMPRESSED_IMAGE" ]; then
+            echo -e "${GREEN}Found compressed image. Loading...${RESET}"
+            if xz -d -c "$COMPRESSED_IMAGE" | docker load; then
+                touch ".installed"
+                echo -e "${GREEN}Image loaded successfully!${RESET}"
+                exit 0
+            else
+                echo -e "${RED}Failed to load compressed image. Building from Dockerfile...${RESET}"
+            fi
+        fi
+
+        # Build from Dockerfile if no compressed image or loading failed
         build_image
         touch ".installed"
         echo -e "${GREEN}Image built and ready to use!${RESET}"
