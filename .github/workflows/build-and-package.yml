@@ -78,20 +78,7 @@ jobs:
           2. Extract it: `unzip ultroid-bot-${{ github.event.inputs.tag }}.zip`
           3. Navigate to the extracted directory: `cd ultroid-bot-${{ github.event.inputs.tag }}`
           4. Make the script executable: `chmod +x docker-ultroid.sh`
-          5. Install Docker if not already installed:
-             - **Ubuntu/Debian:**
-               ```bash
-               sudo apt update && sudo apt install -y docker.io
-               sudo usermod -aG docker $USER
-               newgrp docker
-               ```
-             - **CentOS/RHEL/Fedora:**
-               ```bash
-               sudo dnf install -y docker
-               sudo systemctl enable --now docker
-               sudo usermod -aG docker $USER
-               newgrp docker
-               ```
+          5. Install Docker if not already installed: https://docs.docker.com/get-docker/
           6. Run the bot: `./docker-ultroid.sh start`
 
           **Available commands:**
