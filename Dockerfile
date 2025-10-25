@@ -14,6 +14,7 @@ RUN apt-get update && \
     nano \
     python3-pip \
     sudo \
+    neofetch \
     libgl1-mesa-glx \
     libglib2.0-0 \
     libsm6 \
